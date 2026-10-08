@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insurance Claims Validation System — Mainframe Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+            background: #0b1120;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-bottom: 1px solid #334155;
+            padding: 16px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header-left { display: flex; align-items: center; gap: 16px; }
+        .header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #f8fafc;
+            letter-spacing: -0.3px;
+        }
+        .header .subtitle {
+            font-size: 12px;
+            color: #94a3b8;
+            font-family: 'Consolas', monospace;
+        }
+        .header-badges { display: flex; gap: 8px; align-items: center; }
+        .mainframe-badge {
+            background: #065f46;
+            color: #6ee7b7;
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-family: 'Consolas', monospace;
+            font-weight: 600;
+        }
+        .tech-badge {
+            background: #1e3a5f;
+            color: #7dd3fc;
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-family: 'Consolas', monospace;
+            font-weight: 600;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            background: #111c30;
+            border-bottom: 1px solid #1e293b;
+            padding: 0 32px;
+            overflow-x: auto;
+        }
+        .tab {
+            padding: 14px 20px;
+            cursor: pointer;
+            font-size: 13.5px;
+            font-weight: 500;
+            color: #94a3b8;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .tab:hover { color: #f1f5f9; background: rgba(255,255,255,0.02); }
+        .tab.active {
+            color: #38bdf8;
+            border-bottom-color: #38bdf8;
+            font-weight: 600;
+        }
+
+        /* Content */
+        .content { padding: 24px 32px; max-width: 1600px; margin: 0 auto; }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; animation: fadeIn 0.2s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* KPI Cards Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .kpi-card {
+            background: #172339;
+            border: 1px solid #233554;
+            border-radius: 12px;
+            padding: 18px 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+        }
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+        }
+        .kpi-blue::before { background: #38bdf8; }
+        .kpi-green::before { background: #4ade80; }
+        .kpi-orange::before { background: #fb923c; }
+        .kpi-purple::before { background: #a78bfa; }
+        .kpi-red::before { background: #f87171; }
+
+        .kpi-label {
+            font-size: 11.5px;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+        .kpi-value {
+            font-size: 26px;
+            font-weight: 700;
+            color: #f8fafc;
+            font-family: 'Consolas', monospace;
+            line-height: 1.2;
+        }
+        .kpi-sub {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Cards */
+        .card {
+            background: #172339;
+            border: 1px solid #233554;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #233554;
+            background: rgba(15, 23, 42, 0.4);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .card-header h3 {
+            font-size: 15px;
+            font-weight: 600;
+            color: #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .card-body { padding: 20px; }
+        .card-badge {
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-family: 'Consolas', monospace;
+        }
+        .badge-blue { background: #1e3a5f; color: #7dd3fc; }
+        .badge-green { background: #14532d; color: #86efac; }
+        .badge-red { background: #7f1d1d; color: #fca5a5; }
+        .badge-yellow { background: #713f12; color: #fde68a; }
+
+        /* Grid layout */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+        @media (max-width: 1024px) {
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+        }
+
+        /* Charts specific */
+        .chart-box {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        .chart-box-tall {
+            position: relative;
+            height: 360px;
+            width: 100%;
+        }
+        .chart-legend-custom {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 14px;
+            justify-content: center;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        th {
+            text-align: left;
+            padding: 10px 14px;
+            background: #0f172a;
+            color: #94a3b8;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #233554;
+        }
+        td {
+            padding: 11px 14px;
+            border-top: 1px solid #1e293b;
+            color: #cbd5e1;
+        }
+        tr:hover td { background: #1c2b46; }
+        .num { font-family: 'Consolas', monospace; text-align: right; }
+        .mono { font-family: 'Consolas', monospace; }
+        .plan-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            font-family: 'Consolas', monospace;
+        }
+        .plan-HLTH { background: #064e3b; color: #6ee7b7; }
+        .plan-AUTO { background: #78350f; color: #fcd34d; }
+        .plan-HOME { background: #312e81; color: #a5b4fc; }
+
+        /* Run Panel */
+        .run-section {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        @media (max-width: 768px) {
+            .run-section { flex-direction: column; }
+        }
+        .run-card {
+            flex: 1;
+            background: #172339;
+            border: 1px solid #233554;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+        }
+        .run-btn {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            color: white;
+            border: none;
+            padding: 14px 40px;
+            font-size: 15px;
+            font-weight: 700;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .run-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(5, 150, 105, 0.4); }
+        .run-btn:active { transform: translateY(0); }
+        .run-btn:disabled {
+            background: #334155;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .run-btn.running {
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-ok { background: #22c55e; box-shadow: 0 0 8px rgba(34, 197, 94, 0.6); }
+        .status-err { background: #ef4444; box-shadow: 0 0 8px rgba(239, 68, 68, 0.6); }
+        .status-wait { background: #eab308; box-shadow: 0 0 8px rgba(234, 179, 8, 0.6); }
+        .status-none { background: #475569; }
+
+        /* Terminal */
+        .terminal {
+            background: #030712;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 16px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            color: #a3e635;
+            max-height: 420px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        /* Report view */
+        .report-pre {
+            background: #030712;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 20px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 12.5px;
+            line-height: 1.5;
+            color: #e2e8f0;
+            overflow-x: auto;
+            white-space: pre;
+        }
+
+        /* Textarea */
+        .edit-area {
+            width: 100%;
+            min-height: 200px;
+            background: #030712;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 16px;
+            font-family: 'Consolas', monospace;
+            font-size: 13px;
+            color: #a3e635;
+            resize: vertical;
+            line-height: 1.6;
+        }
+        .edit-area:focus { outline: none; border-color: #38bdf8; }
+
+        .save-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        .save-btn:hover { background: #1d4ed8; }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        .st-APPR { background:#14532d; color:#86efac; }
+        .st-CAPD { background:#713f12; color:#fde68a; }
+        .st-REVW { background:#7c2d12; color:#fdba74; }
+        .st-NIL  { background:#334155; color:#cbd5e1; }
+        .sev-ERROR { background:#7f1d1d; color:#fca5a5; }
+        .sev-WARNING { background:#713f12; color:#fde68a; }
+        .bar-wrap { background:#0f172a; border-radius:6px; height:10px; width:100%; overflow:hidden; }
+        .bar-fill { height:100%; background:linear-gradient(90deg,#38bdf8,#818cf8); }
+
+    </style>
+    <script src="/static/js/chart.min.js"></script>
+    <script>
+        if (typeof Chart === 'undefined') {
+            document.write('<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"><\/script>');
+        }
+    </script>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-left">
+        <h1>🛡️ Insurance Claims Validation System</h1>
+        <span class="subtitle">CLMPROC01 — GnuCOBOL Batch Engine</span>
+    </div>
+    <div class="header-badges">
+        <span class="tech-badge">GnuCOBOL 3.1</span>
+        <span class="mainframe-badge">IBM z/OS EMULATION</span>
+    </div>
+</div>
+
+<div class="tabs">
+    <div class="tab active" onclick="switchTab('dashboard')"><span>📊</span> Overview</div>
+    <div class="tab" onclick="switchTab('analytics')"><span>📈</span> Analytics & Charts</div>
+    <div class="tab" onclick="switchTab('data')"><span>🧾</span> Claims & Input</div>
+    <div class="tab" onclick="switchTab('refdata')"><span>🗄️</span> Reference Data (DB2/VSAM)</div>
+    <div class="tab" onclick="switchTab('run')"><span>▶</span> Run Batch (JCL)</div>
+    <div class="tab" onclick="switchTab('settlement')"><span>📄</span> Settlement Report</div>
+    <div class="tab" onclick="switchTab('plans')"><span>📋</span> Plan Summary</div>
+    <div class="tab" onclick="switchTab('exceptions')"><span>⚠️</span> Exception Log</div>
+</div>
+
+<div class="content">
+
+<!-- TAB 1: OVERVIEW -->
+<div id="panel-dashboard" class="tab-panel active">
+    <div class="kpi-grid">
+        <div class="kpi-card kpi-blue"><div class="kpi-label">Total Claimed (Approved)</div>
+            <div class="kpi-value" id="kpi-claimed">$0.00</div><div class="kpi-sub">Before deductible & co-pay</div></div>
+        <div class="kpi-card kpi-green"><div class="kpi-label">Insurer Payable</div>
+            <div class="kpi-value" id="kpi-payable">$0.00</div><div class="kpi-sub">Net settlement outflow</div></div>
+        <div class="kpi-card kpi-purple"><div class="kpi-label">Claims Processed</div>
+            <div class="kpi-value" id="kpi-total">0</div><div class="kpi-sub" id="kpi-rate">—</div></div>
+        <div class="kpi-card kpi-orange"><div class="kpi-label">Flagged for Review</div>
+            <div class="kpi-value" id="kpi-flagged">0</div><div class="kpi-sub">Warnings WRN-01..03</div></div>
+        <div class="kpi-card kpi-red"><div class="kpi-label">Rejected Claims</div>
+            <div class="kpi-value" id="kpi-rejected">0</div><div class="kpi-sub">Errors ERR-01..08</div></div>
+    </div>
+
+    <div class="grid-2">
+        <div class="card">
+            <div class="card-header"><h3>🏷️ Plan-wise Claimed vs Payable</h3><span class="card-badge badge-blue">Settlement</span></div>
+            <div class="card-body"><div class="chart-box"><canvas id="ovPlanChart"></canvas></div></div>
+        </div>
+        <div class="card">
+            <div class="card-header"><h3>🚦 Rejection Reasons</h3><span class="card-badge badge-red">Validation Gates</span></div>
+            <div class="card-body"><div class="chart-box"><canvas id="ovErrChart"></canvas></div></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><h3>📁 Report Datasets</h3><span class="card-badge badge-green" id="gen-badge">Not generated</span></div>
+        <div class="card-body" style="padding:0;">
+            <table><thead><tr><th>Dataset</th><th>Description</th><th>Status</th></tr></thead>
+            <tbody id="report-status"></tbody></table>
+        </div>
+    </div>
+</div>
+
+<!-- TAB 2: ANALYTICS -->
+<div id="panel-analytics" class="tab-panel">
+    <div class="grid-2">
+        <div class="card"><div class="card-header"><h3>🍩 Claim Outcomes</h3><span class="card-badge badge-green">Disposition</span></div>
+            <div class="card-body"><div class="chart-box"><canvas id="outcomeChart"></canvas></div></div></div>
+        <div class="card"><div class="card-header"><h3>⚠️ Exception Codes (Errors + Warnings)</h3><span class="card-badge badge-red">Exception Log</span></div>
+            <div class="card-body"><div class="chart-box"><canvas id="excChart"></canvas></div></div></div>
+    </div>
+    <div class="grid-2">
+        <div class="card"><div class="card-header"><h3>🏦 Sum Insured Utilisation (Paid vs Remaining)</h3><span class="card-badge badge-blue">Per Policy</span></div>
+            <div class="card-body"><div class="chart-box"><canvas id="utilChart"></canvas></div></div></div>
+        <div class="card"><div class="card-header"><h3>💸 Where Each Claim Dollar Goes</h3><span class="card-badge badge-yellow">Per Claim</span></div>
+            <div class="card-body"><div class="chart-box"><canvas id="splitChart"></canvas></div></div></div>
+    </div>
+</div>
+
+<!-- TAB 3: CLAIMS INPUT -->
+<div id="panel-data" class="tab-panel">
+    <div class="grid-2">
+        <div class="card">
+            <div class="card-header"><h3>🧾 Claims Stream (raw_claims.dat)</h3><span class="card-badge badge-yellow" id="cl-count-badge"></span></div>
+            <div class="card-body" style="padding:0;">
+                <table><thead><tr><th>Claim #</th><th>Policy</th><th class="num">Amount</th><th>Cover</th><th>Date</th><th>Pre-flight</th></tr></thead>
+                <tbody id="cl-table"></tbody></table>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header"><h3>✏️ Modify Raw Claims Dataset</h3><span class="card-badge badge-blue">Fixed-Width 27-Byte</span></div>
+            <div class="card-body">
+                <p style="font-size:12px; color:#94a3b8; margin-bottom:12px; line-height:1.5;">
+                    Record Format: <code style="color:#a3e635; font-weight:700;">CCCCCCPPPPPAAAAAAACDDDDDDDD</code><br>
+                    • Cols 1–6: Claim ID (numeric)<br>
+                    • Cols 7–11: Policy ID (numeric)<br>
+                    • Cols 12–18: Claim amount in cents (e.g. <code>1250000</code> = $12,500.00)<br>
+                    • Col 19: Coverage code (<code>A</code>–<code>F</code>)<br>
+                    • Cols 20–27: Claim date <code>YYYYMMDD</code>
+                </p>
+                <textarea id="cl-edit" class="edit-area" spellcheck="false"></textarea>
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-top:10px;">
+                    <button class="save-btn" onclick="saveClaims()">💾 Save Claims Dataset</button>
+                    <span id="save-status" style="font-size:12px;"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TAB 4: REFERENCE -->
+<div id="panel-refdata" class="tab-panel">
+    <div class="grid-2">
+        <div class="card">
+            <div class="card-header"><h3>📑 Policy Master Table (DB2 Emulation)</h3><span class="card-badge badge-blue" id="pol-count-badge"></span></div>
+            <div class="card-body" style="padding:0;">
+                <table><thead><tr><th>Policy</th><th>Holder</th><th>Plan</th><th class="num">Sum Insured</th><th>Period</th><th>Status</th></tr></thead>
+                <tbody id="pol-table"></tbody></table>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header"><h3>📊 Coverage Rates Index (VSAM KSDS Emulation)</h3><span class="card-badge badge-green" id="cov-count-badge"></span></div>
+            <div class="card-body" style="padding:0;">
+                <table><thead><tr><th>Key</th><th>Plan</th><th>Coverage</th><th class="num">Deductible</th><th class="num">Co-pay</th><th class="num">Per-claim Limit</th></tr></thead>
+                <tbody id="cov-table"></tbody></table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TAB 5: RUN -->
+<div id="panel-run" class="tab-panel">
+    <div class="run-section">
+        <div class="run-card" style="flex:2">
+            <h3 style="margin-bottom:16px; color:#cbd5e1; font-size:17px;">Mainframe JCL Batch Pipeline Orchestrator</h3>
+            <button id="run-btn" class="run-btn" onclick="runBatch()"><span>▶</span> SUBMIT JOB CLMPROC01</button>
+            <p style="margin-top:14px; font-size:12.5px; color:#94a3b8;">
+                Executes: <strong>STEP01 (Compiler)</strong> → <strong>STEP02 (DFSORT)</strong> → <strong>STEP03 (IKFCBL00)</strong> → <strong>STEP04 (CLMPROC01)</strong> → <strong>STEP05 (Verify)</strong>
+            </p>
+        </div>
+        <div class="run-card" style="flex:1">
+            <div style="margin-bottom:10px;"><span class="status-indicator status-none" id="rc-indicator"></span>
+                <span style="font-size:13px; color:#94a3b8;">Job Execution Status</span></div>
+            <div class="kpi-value" id="rc-value">—</div>
+            <div class="kpi-sub" style="justify-content:center;" id="rc-time">Awaiting submission</div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header"><h3>🖥️ JES2 SYSOUT Job Spool Console</h3><span class="card-badge badge-blue">Class A Batch Log</span></div>
+        <div class="card-body"><div class="terminal" id="console-output">Awaiting job submission... Click "SUBMIT JOB CLMPROC01" above to initiate execution.</div></div>
+    </div>
+</div>
+
+<!-- TAB 6-8: REPORTS -->
+<div id="panel-settlement" class="tab-panel"><div class="card">
+    <div class="card-header"><h3>📄 CLAIMS_SETTLEMENT_REPORT.txt</h3><span class="card-badge badge-green">SYSOUT Class A Listing</span></div>
+    <div class="card-body"><div class="report-pre" id="report-settlement"><div class="no-data">No report generated yet. Go to "Run Batch" tab to execute the pipeline.</div></div></div></div></div>
+<div id="panel-plans" class="tab-panel"><div class="card">
+    <div class="card-header"><h3>📋 PLAN_CLAIMS_SUMMARY.txt</h3><span class="card-badge badge-blue">Auditor Reconcile Dataset</span></div>
+    <div class="card-body"><div class="report-pre" id="report-plans"><div class="no-data">No report generated yet. Go to "Run Batch" tab to execute the pipeline.</div></div></div></div></div>
+<div id="panel-exceptions" class="tab-panel"><div class="card">
+    <div class="card-header"><h3>⚠️ CLAIMS_EXCEPTION_LOG.txt</h3><span class="card-badge badge-red">Error Queue & Review Flags</span></div>
+    <div class="card-body"><div class="report-pre" id="report-exceptions"><div class="no-data">No report generated yet. Go to "Run Batch" tab to execute the pipeline.</div></div>
+        <div id="exc-legend" style="margin-top:16px; font-size:12px; color:#94a3b8; line-height:1.8;"></div></div></div></div>
+
+</div>
+
+<script>
+const charts = {};
+const C = { blue:'#38bdf8', green:'#4ade80', orange:'#fb923c', purple:'#a78bfa', red:'#f87171', yellow:'#fcd34d', slate:'#64748b' };
+if (window.Chart) {
+    Chart.defaults.color = '#94a3b8';
+    Chart.defaults.borderColor = '#1e293b';
+    Chart.defaults.font.family = "'Segoe UI', sans-serif";
+}
+const $ = id => document.getElementById(id);
+const fmt = v => '$' + Number(v || 0).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+let ERR_TEXT = {};
+
+function switchTab(name) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    $('panel-' + name).classList.add('active');
+    const tab = Array.from(document.querySelectorAll('.tab')).find(t => t.getAttribute('onclick').includes("'" + name + "'"));
+    if (tab) tab.classList.add('active');
+    if (name === 'dashboard' || name === 'analytics')
+        setTimeout(() => Object.values(charts).forEach(c => c && c.resize()), 50);
+    if (['settlement','plans','exceptions'].includes(name)) loadReports();
+}
+
+function makeChart(id, cfg) {
+    if (charts[id]) charts[id].destroy();
+    charts[id] = new Chart($(id), cfg);
+}
+
+// ---------------- Input & reference data ----------------
+async function loadData() {
+    const d = await (await fetch('/api/data')).json();
+    ERR_TEXT = d.error_text;
+    $('pol-count-badge').textContent = d.policies.length + ' records';
+    $('cov-count-badge').textContent = d.coverages.length + ' cover codes';
+    $('cl-count-badge').textContent = d.claims.length + ' records';
+
+    const stMap = {A:['Active','badge-green'], L:['Lapsed','badge-yellow'], C:['Cancelled','badge-red']};
+    $('pol-table').innerHTML = d.policies.map(p => {
+        const s = stMap[p.status] || ['?','badge-red'];
+        return `<tr><td class="mono" style="font-weight:700;color:#38bdf8;">${p.id}</td><td>${esc(p.name)}</td>
+        <td><span class="plan-badge plan-${p.plan}">${p.plan}</span></td>
+        <td class="num">${fmt(p.sum_insured)}</td>
+        <td class="mono" style="font-size:11.5px;">${p.eff} → ${p.exp}</td>
+        <td><span class="card-badge ${s[1]}">${s[0]}</span></td></tr>`;
+    }).join('');
+
+    $('cov-table').innerHTML = d.coverages.map(c => `<tr>
+        <td class="mono" style="font-size:15px;font-weight:700;color:#4ade80;">${c.code}</td>
+        <td><span class="plan-badge plan-${c.plan}">${c.plan}</span></td><td>${esc(c.desc)}</td>
+        <td class="num">${fmt(c.deductible)}</td><td class="num">${c.copay}%</td>
+        <td class="num" style="color:#fcd34d;font-weight:600;">${fmt(c.limit)}</td></tr>`).join('');
+
+    $('cl-table').innerHTML = d.claims.map(c => {
+        let label, cls;
+        if (c.preflight.startsWith('ERR')) { label = c.preflight + ' ' + (ERR_TEXT[c.preflight]||'').split(' (')[0]; cls = 'badge-red'; }
+        else if (c.preflight.includes(':')) { label = 'OK ⚑ ' + c.preflight.split(':')[1]; cls = 'badge-yellow'; }
+        else { label = 'VALID ✅'; cls = 'badge-green'; }
+        const d8 = c.date;
+        return `<tr><td class="mono" style="font-weight:700;">${esc(c.claim_id)}</td><td class="mono">${esc(c.policy_id)}</td>
+        <td class="num">${isNaN(c.amount) ? esc(c.amount) : fmt(c.amount)}</td>
+        <td class="mono" style="font-weight:700;color:#fcd34d;">${esc(c.cover)}</td>
+        <td class="mono" style="font-size:12px;">${esc(d8)}</td>
+        <td><span class="card-badge ${cls}" title="${esc(ERR_TEXT[c.preflight.split(':')[0]]||'')}">${esc(label)}</span></td></tr>`;
+    }).join('');
+
+    $('cl-edit').value = d.claims.map(c => c.raw).join('\n');
+}
+
+async function saveClaims() {
+    const st = $('save-status');
+    const lines = $('cl-edit').value.split('\n').map(l => l.replace(/\s+$/,'')).filter(l => l.length);
+    const bad = lines.findIndex(l => l.length !== 27);
+    if (bad >= 0) { st.style.color = '#f87171'; st.textContent = `Line ${bad+1} must be exactly 27 characters (found ${lines[bad].length}).`; return; }
+    const res = await (await fetch('/api/claims', {method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({claims: lines.join('\n') + '\n'})})).json();
+    st.style.color = res.success ? '#4ade80' : '#f87171';
+    st.textContent = res.success ? '✔ Saved. Re-run the batch to apply.' : 'Error: ' + res.error;
+    if (res.success) loadData();
+}
+
+// ---------------- Batch run ----------------
+async function runBatch() {
+    const btn = $('run-btn'), con = $('console-output');
+    btn.disabled = true; btn.classList.add('running'); btn.innerHTML = '<span>⏳</span> JOB RUNNING...';
+    $('rc-indicator').className = 'status-indicator status-wait';
+    $('rc-value').textContent = '...'; $('rc-time').textContent = 'Executing pipeline';
+    con.textContent = 'Submitting JOB CLMPROC01 to JES2...\n';
+    try {
+        const r = await (await fetch('/api/run', {method:'POST'})).json();
+        con.textContent = r.output;
+        const rc = String(r.return_code).padStart(4,'0');
+        $('rc-value').textContent = 'RC=' + rc;
+        $('rc-indicator').className = 'status-indicator ' + (r.success ? (r.return_code === 0 ? 'status-ok' : 'status-wait') : 'status-err');
+        $('rc-time').textContent = (r.return_code === 4 ? 'Completed with exceptions · ' : r.success ? 'Clean run · ' : 'FAILED · ') + r.timestamp;
+        await loadAll();
+    } catch (e) {
+        con.textContent = 'ERROR: ' + e; $('rc-indicator').className = 'status-indicator status-err';
+    }
+    btn.disabled = false; btn.classList.remove('running'); btn.innerHTML = '<span>▶</span> SUBMIT JOB CLMPROC01';
+}
+
+// ---------------- Reports & charts ----------------
+const EMPTY = '<div class="no-data">No report generated yet. Go to "Run Batch" tab to execute the pipeline.</div>';
+async function loadReports() {
+    const r = await (await fetch('/api/reports')).json();
+    $('report-settlement').innerHTML = r.settlement ? esc(r.settlement) : EMPTY;
+    $('report-plans').innerHTML = r.plan_summary ? esc(r.plan_summary) : EMPTY;
+    $('report-exceptions').innerHTML = r.exceptions ? esc(r.exceptions) : EMPTY;
+    $('exc-legend').innerHTML = Object.entries(r.analytics.error_text).map(([k,v]) =>
+        `<span class="mono" style="color:${k.startsWith('ERR')?'#fca5a5':'#fde68a'}">${k}</span> — ${esc(v)}`).join('<br>');
+    $('gen-badge').textContent = r.has_reports ? 'Generated ' + r.generated_at : 'Not generated';
+    $('report-status').innerHTML = [
+        ['CLAIMS_SETTLEMENT_REPORT.txt','Per-claim settlement with deductible and co-pay', r.settlement],
+        ['PLAN_CLAIMS_SUMMARY.txt','Plan-level audit totals', r.plan_summary],
+        ['CLAIMS_EXCEPTION_LOG.txt','Rejected claims and review flags', r.exceptions]].map(x =>
+        `<tr><td class="mono">${x[0]}</td><td>${x[1]}</td><td><span class="card-badge ${x[2]?'badge-green':'badge-yellow'}">${x[2]?'AVAILABLE':'PENDING'}</span></td></tr>`).join('');
+    renderAnalytics(r.analytics);
+}
+
+function renderAnalytics(a) {
+    const t = a.totals || {};
+    $('kpi-claimed').textContent = fmt(t.claimed);
+    $('kpi-payable').textContent = fmt(t.payable);
+    $('kpi-total').textContent = t.total_records ?? 0;
+    $('kpi-flagged').textContent = t.flagged ?? 0;
+    $('kpi-rejected').textContent = t.rejected ?? 0;
+    $('kpi-rate').textContent = t.total_records ? Math.round(100 * t.approved / t.total_records) + '% approval rate' : '—';
+    if (!a.claims.length) return;
+
+    const plans = a.plans;
+    makeChart('ovPlanChart', {type:'bar', data:{labels: plans.map(p=>p.plan), datasets:[
+        {label:'Claimed', data: plans.map(p=>p.claimed), backgroundColor: C.blue},
+        {label:'Payable', data: plans.map(p=>p.payable), backgroundColor: C.green},
+        {label:'Not covered', data: plans.map(p=>p.not_covered), backgroundColor: C.orange}]},
+        options:{responsive:true, maintainAspectRatio:false}});
+
+    const ec = a.error_counts;
+    const ekeys = Object.keys(ec);
+    makeChart('ovErrChart', {type:'bar', data:{labels: ekeys, datasets:[{label:'Rejected claims', data: ekeys.map(k=>ec[k]), backgroundColor: C.red}]},
+        options:{indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{ticks:{precision:0}}}}});
+
+    const sc = a.status_counts;
+    const labels = ['Approved','Capped','Manual review','Nil payout','Rejected'];
+    const vals = [sc.APPR||0, sc.CAPD||0, sc.REVW||0, sc.NIL||0, t.rejected||0];
+    makeChart('outcomeChart', {type:'doughnut', data:{labels, datasets:[{data: vals, backgroundColor:[C.green,C.yellow,C.orange,C.slate,C.red], borderWidth:0}]},
+        options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom'}}}});
+
+    const all = {...a.error_counts, ...a.warning_counts}; const akeys = Object.keys(all).sort();
+    makeChart('excChart', {type:'bar', data:{labels: akeys, datasets:[{data: akeys.map(k=>all[k]), backgroundColor: akeys.map(k=>k.startsWith('ERR')?C.red:C.yellow)}]},
+        options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{ticks:{precision:0}}}}});
+
+    const u = a.utilisation.slice().sort((x,y)=>x.policy_id.localeCompare(y.policy_id));
+    makeChart('utilChart', {type:'bar', data:{labels:u.map(p=>p.policy_id+' '+p.plan), datasets:[
+        {label:'Paid', data:u.map(p=>p.paid), backgroundColor:C.green},
+        {label:'Remaining', data:u.map(p=>Math.max(0,p.sum_insured-p.paid)), backgroundColor:'#334155'}]},
+        options:{responsive:true, maintainAspectRatio:false, scales:{x:{stacked:true}, y:{stacked:true}}}});
+
+    const cl = a.claims;
+    makeChart('splitChart', {type:'bar', data:{labels:cl.map(c=>c.claim_id), datasets:[
+        {label:'Insurer pays', data:cl.map(c=>c.payable), backgroundColor:C.green},
+        {label:'Deductible', data:cl.map(c=>c.deductible), backgroundColor:C.blue},
+        {label:'Co-pay', data:cl.map(c=>c.copay), backgroundColor:C.purple},
+        {label:'Over limit', data:cl.map(c=>Math.max(0,c.claimed-c.eligible)), backgroundColor:C.orange}]},
+        options:{responsive:true, maintainAspectRatio:false, scales:{x:{stacked:true}, y:{stacked:true}}}});
+}
+
+async function loadAll() { await Promise.all([loadData(), loadReports()]); }
+loadAll();
+</script>
+</body>
+</html>
